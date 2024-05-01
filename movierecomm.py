@@ -33,25 +33,6 @@ def get_recommendations(movie_title, threshold=0.2):
                 recommendations.append(row['title'])
     return recommendations
 
-# Set page configuration
-st.set_page_config(
-    page_title="Movie Recommendation System",
-    page_icon=":movie_camera:",
-    layout="centered",  # 'wide'
-    initial_sidebar_state="expanded")  # 'auto', 'expanded', 'collapsed'
-
-# Set background color
-st.markdown(
-    """
-    <style>
-    .reportview-container {
-        background: #f0f3f4;  /* red */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Streamlit UI
 st.title('Movie Recommendation System')
 
@@ -68,4 +49,3 @@ if st.button('Get Recommendations'):
             st.write(f"{i+1}. {movie}")
     else:
         st.write("No recommendations found for this movie.")
-
