@@ -1,26 +1,25 @@
 import streamlit as st
 import pandas as pd
-from sklearn.metrics.pairwise
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.neighbors import NearestNeighbors
 
 # Load the movie dataset
 movies_df = pd.read_csv("movies.csv")
 
-# Create a CountVectorizer object
-count_vectorizer = CountVectorizer(stop_words='english')
-count_matrix = count_vectorizer.fit_transform(movies_df['genres'])
+# Create a TF-IDF Vectorizer object
+tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+tfidf_matrix = tfidf_vectorizer.fit_transform(movies_df['genres'])
 
-# Compute the cosine similarity matrix
-cosine_sim = cosine_similarity(count_matrix, count_matrix)
+# Fit a k-nearest neighbors model
+knn_model = NearestNeighbors(metric='cosine', algorithm='brute')
+knn_model.fit(tfidf_matrix)
 
 # Function to get movie recommendations
-def get_recommendations(movie_title, cosine_sim=cosine_sim):
-    idx = movies_df[movies_df['title'] == movie_title].index[0]
-    sim_scores = list(enumerate(cosine_sim[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-    sim_scores = sim_scores[1:11]
-    movie_indices = [i[0] for i in sim_scores]
-    return movies_df['title'].iloc[movie_indices]
+def get_recommendations(movie_title, k=10):
+    movie_index = movies_df[movies_df['title'] == movie_title].index[0]
+    distances, indices = knn_model.kneighbors(tfidf_matrix[movie_index], n_neighbors=k+1)
+    recommended_movies = [movies_df.iloc[idx]['title'] for idx in indices.flatten()[1:]]
+    return recommended_movies
 
 # Streamlit UI
 st.title('Movie Recommendation System')
