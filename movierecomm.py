@@ -1,7 +1,5 @@
 import streamlit as st
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.neighbors import NearestNeighbors
 
 # Load the movie dataset
 @st.cache
@@ -10,20 +8,25 @@ def load_data():
 
 movies_df = load_data()
 
-# Create a TF-IDF Vectorizer object
-tfidf_vectorizer = TfidfVectorizer(stop_words='english')
-tfidf_matrix = tfidf_vectorizer.fit_transform(movies_df['genres'])
-
-# Fit a k-nearest neighbors model
-knn_model = NearestNeighbors(metric='cosine', algorithm='brute')
-knn_model.fit(tfidf_matrix)
+# Function to calculate similarity based on genres
+def calculate_similarity(movie_genres_1, movie_genres_2):
+    genres_1 = set(movie_genres_1.split('|'))
+    genres_2 = set(movie_genres_2.split('|'))
+    intersection = genres_1.intersection(genres_2)
+    similarity = len(intersection) / (len(genres_1) + len(genres_2) - len(intersection))
+    return similarity
 
 # Function to get movie recommendations
-def get_recommendations(movie_title, k=10):
-    movie_index = movies_df[movies_df['title'] == movie_title].index[0]
-    distances, indices = knn_model.kneighbors(tfidf_matrix[movie_index], n_neighbors=k+1)
-    recommended_movies = [movies_df.iloc[idx]['title'] for idx in indices.flatten()[1:]]
-    return recommended_movies
+def get_recommendations(movie_title, threshold=0.2):
+    movie_row = movies_df[movies_df['title'] == movie_title]
+    movie_genres = movie_row['genres'].values[0]
+    recommendations = []
+    for index, row in movies_df.iterrows():
+        if row['title'] != movie_title:
+            similarity = calculate_similarity(movie_genres, row['genres'])
+            if similarity >= threshold:
+                recommendations.append(row['title'])
+    return recommendations
 
 # Streamlit UI
 st.title('Movie Recommendation System')
@@ -36,5 +39,8 @@ selected_movie = st.selectbox(
 if st.button('Get Recommendations'):
     st.write("### Recommendations for", selected_movie)
     recommendations = get_recommendations(selected_movie)
-    for i, movie in enumerate(recommendations):
-        st.write(f"{i+1}. {movie}")
+    if recommendations:
+        for i, movie in enumerate(recommendations):
+            st.write(f"{i+1}. {movie}")
+    else:
+        st.write("No recommendations found for this movie.")
