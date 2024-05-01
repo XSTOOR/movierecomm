@@ -10,6 +10,8 @@ movies_df = load_data()
 
 # Function to calculate similarity based on genres
 def calculate_similarity(movie_genres_1, movie_genres_2):
+    if not movie_genres_1 or not movie_genres_2:
+        return 0  # If any of the genres is empty, return 0 similarity
     genres_1 = set(movie_genres_1.split('|'))
     genres_2 = set(movie_genres_2.split('|'))
     intersection = genres_1.intersection(genres_2)
