@@ -4,7 +4,11 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.neighbors import NearestNeighbors
 
 # Load the movie dataset
-movies_df = pd.read_csv("movies.csv")
+@st.cache
+def load_data():
+    return pd.read_csv("movies.csv")
+
+movies_df = load_data()
 
 # Create a TF-IDF Vectorizer object
 tfidf_vectorizer = TfidfVectorizer(stop_words='english')
@@ -30,5 +34,7 @@ selected_movie = st.selectbox(
 )
 
 if st.button('Get Recommendations'):
+    st.write("### Recommendations for", selected_movie)
     recommendations = get_recommendations(selected_movie)
-    st.write(recommendations)
+    for i, movie in enumerate(recommendations):
+        st.write(f"{i+1}. {movie}")
